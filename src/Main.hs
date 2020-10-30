@@ -62,7 +62,7 @@ reagoi tapahtuma peli =
     EventKey (Char 's') Down _ _ -> kopterille (muutaTehoa (-2.5)) peli
     EventKey (Char 'a') Down _ _ -> kopterille (kallista (-8)) peli
     EventKey (Char 'd') Down _ _ -> kopterille (kallista (8)) peli
-    EventKey (Char 'f') Down _ _ -> ammu 10 peli
+    EventKey (Char 'f') Down _ _ -> ammu 1 peli
     _ -> peli
 
 kopterille :: (Kopteri -> Kopteri) -> Choplifter -> Choplifter
@@ -98,7 +98,7 @@ osuukoAmmusPäivitys ae cl =
   case osuukoAmmus ae (map ammusTörmäysViivat (cl_ammukset cl)) (cl_hemmot cl) of
     Just osunutHemmoihin ->
       case osunutHemmoihin of
-        [] -> Just (cl {cl_kc = (cl_kc cl) + 100})
+        [] -> Just cl
         jotain -> Just (cl {cl_kc = (cl_kc cl) + 1})
     Nothing -> Just cl
 
@@ -136,11 +136,10 @@ data TörmäysKohta = Laskuteline | Roottori
 
 osuukoAmmus :: Float -> [((Point, Point), (Point, Point))] -> [Hemmo] -> Maybe [Hemmo]
 osuukoAmmus _ae viivat hemmot =
-  let yhteen ((y1, y2), (_a1, _a2)) hemmo1 =
-        let (h1, h2) = nurkkaPisteetHemmo hemmo1
-         in case (not (segClearsBox h1 h2 y1 y2), not (segClearsBox h1 h2 y1 y2)) of
-              (False, False) -> Nothing
-              _ -> Just hemmo1
+  let yhteen törPist hemmo1 =
+        case (osuuko (nurkkaPisteetHemmo hemmo1) törPist) of
+          False -> Nothing
+          _ -> Just hemmo1
       osuukoViivaan viiva = mapMaybe (yhteen viiva) hemmot
       osuukoHemmot = fmap head (nonEmpty (map osuukoViivaan viivat))
    in osuukoHemmot
@@ -178,19 +177,56 @@ piirräPeli peli =
       hemmoNurkat =
         map
           ( \d ->
-              let ((x, y), _y) = nurkkaPisteetHemmo d
-                  tää = translate x y (color black (circleSolid 10))
-               in tää
+              let (((x, y), (_x1, _y1)), ((_x2, _y2), (_x3, _y3))) = nurkkaPisteetHemmo d
+                  t1 = translate x y (color black (circleSolid 10))
+               in t1
           )
           (cl_hemmot peli)
+
+      hemmoNurkat1 =
+        map
+          ( \d ->
+              let (((_x, _y), (_x1, _y1)), ((_x2, _y2), (_x3, _y3))) = nurkkaPisteetHemmo d
+                  t1 = translate _x1 _y1 (color black (circleSolid 10))
+               in t1
+          )
+          (cl_hemmot peli)
+
       hemmoNurkat2 =
         map
           ( \d ->
-              let (_x, (x, y)) = nurkkaPisteetHemmo d
-                  tää = translate x y (color black (circleSolid 10))
-               in tää
+              let (((_x, _y), (_x1, _y1)), ((_x2, _y2), (_x3, _y3))) = nurkkaPisteetHemmo d
+                  t1 = translate _x2 _y2 (color black (circleSolid 10))
+               in t1
           )
           (cl_hemmot peli)
+
+      hemmoNurkat3 =
+        map
+          ( \d ->
+              let (((_x, _y), (_x1, _y1)), ((_x2, _y2), (_x3, _y3))) = nurkkaPisteetHemmo d
+                  t1 = translate _x3 _y3 (color black (circleSolid 10))
+               in t1
+          )
+          (cl_hemmot peli)
+
+      v1 =
+        map
+          ( \d ->
+              let ((p1, p2), (p3, p4)) = nurkkaPisteetHemmo d
+                  t1 = color yellow (line [p1, p4])
+               in t1
+          )
+          (cl_hemmot peli)
+
+      v2 =
+        map
+          ( \d ->
+              let ((p1, p2), (p3, p4)) = ammusTörmäysViivat d
+                  t1 = color red (line [p1, p4])
+               in t1
+          )
+          (cl_ammukset peli)
 
       ammusViivaPisteet =
         case length (cl_ammukset peli) > 0 of
@@ -214,7 +250,11 @@ piirräPeli peli =
             <> kopterikuva
             <> pictures (map piirräAmmus (cl_ammukset peli))
             <> pictures hemmoNurkat
+            <> pictures hemmoNurkat1
             <> pictures hemmoNurkat2
+            <> pictures hemmoNurkat3
+            <> pictures v2
+            <> pictures v1
             <> pictures ammusViivaPisteet
         False ->
           maa
@@ -223,7 +263,11 @@ piirräPeli peli =
             <> pictures hemmoKuvat
             <> kopterikuva
             <> pictures hemmoNurkat
+            <> pictures hemmoNurkat1
             <> pictures hemmoNurkat2
+            <> pictures hemmoNurkat3
+            <> pictures v1
+            <> pictures v2
    in scale 0.25 0.25 (translate 0 (-180) peliKuva)
 
 data PeliTilanne = GameOver Choplifter | GameOn Choplifter

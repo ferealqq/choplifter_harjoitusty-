@@ -26,7 +26,7 @@ piirräAmmus ammus = translate x y (scale 0.4 0.4 ammusKuva)
   where
     (x, y) = ammus_paikka ammus
     ammusKuva = translate 0 (150) (color black pallo)
-    pallo = circleSolid 30
+    pallo = circleSolid 300
 
 -- TODO
 
@@ -45,16 +45,31 @@ päivitäAmmus aikaEdellisestä ammus =
 
 ammusTörmäysViivat :: Ammus -> ((Point, Point), (Point, Point))
 ammusTörmäysViivat ammus =
-  let säde = 2000
+  let säde = 150
       y1 = (säde, säde) #+ (ammus_paikka ammus)
       y2 = (- säde, säde) #+ (ammus_paikka ammus)
       y3 = (säde, - säde) #+ (ammus_paikka ammus)
       y4 = (- säde, - säde) #+ (ammus_paikka ammus)
       kääntö = rotateV (- degToRad 45)
-   in ((kääntö y1, kääntö y2), (kääntö y3, kääntö y4))
+   in ((y1, y2), (y3, y4))
 
+ammusTesti :: Ammus
 ammusTesti = Ammus (0, 0) (2, 2)
 
-montaAmmusta = [ammusTesti, Ammus (870, 800) (2, 2), Ammus (900, 800) (2, 2)]
+montaAmmusta :: [Ammus]
+montaAmmusta = [ammusTesti, Ammus (-100, -100) (2, 2), Ammus (-100, -100) (2, 2)]
 
+montaAmmusta2 :: [Ammus]
+montaAmmusta2 = [ammusTesti, Ammus (800, 800) (2, 2), Ammus (700, 700) (2, 2)]
+
+viivatAmmus :: [((Point, Point), (Point, Point))]
 viivatAmmus = map ammusTörmäysViivat montaAmmusta
+
+viivatAmmus2 :: [((Point, Point), (Point, Point))]
+viivatAmmus2 = map ammusTörmäysViivat montaAmmusta2
+
+hävinneetAmmukset :: [Ammus]
+hävinneetAmmukset = [Ammus (-10000000, -100000000000) (-100, -100), Ammus (-99999999, -999999999) (-999, -999)]
+
+kadonneetViivat :: [((Point, Point), (Point, Point))]
+kadonneetViivat = map ammusTörmäysViivat hävinneetAmmukset

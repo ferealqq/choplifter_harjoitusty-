@@ -89,6 +89,18 @@ osuukoHemmoon kohta hemmo
       hemmo
   | otherwise = 0
 
+nurkkaPisteetHemmo :: Hemmo -> ((Point, Point), (Point, Point))
+nurkkaPisteetHemmo _hemmo@(Hemmo {hemmo_sijainti = (hx, hy), hemmo_pituus = pituus, hemmo_leveys = leveys}) =
+  let hemmoMinX = hx - (leveys / 2)
+      hemmoMaxX = hx + (leveys / 2)
+      hemmoMaxY = hy + pituus
+      vasenYlä = (hemmoMinX, hemmoMaxY)
+      vasenAla = (hemmoMinX, hy)
+      oikeaYlä = (hemmoMaxX, hemmoMaxY)
+      oikeaAla = (hemmoMaxX, hy)
+   in ((vasenYlä, vasenAla), (oikeaYlä, oikeaAla))
+
+{-
 nurkkaPisteetHemmo :: Hemmo -> (Point, Point)
 nurkkaPisteetHemmo hemmo =
   let hemmoMinX = fst (hemmo_sijainti hemmo) - ((hemmo_leveys hemmo) / 2)
@@ -98,7 +110,30 @@ nurkkaPisteetHemmo hemmo =
       vasenAla = (hemmoMinX, hemmoMinY)
       oikeaYlä = (hemmoMaxX, hemmoMaxY)
    in (vasenAla, oikeaYlä)
+-}
 
+testiHemmo :: Hemmo
 testiHemmo = Hemmo (1000, 1000) 120 65
 
+testiHemmoja :: [Hemmo]
 testiHemmoja = [testiHemmo, Hemmo (800, 900) 120 65, Hemmo (700, 500) 120 65]
+
+mahdotonOsuaHemmo :: Hemmo
+mahdotonOsuaHemmo = Hemmo (1000, 1000) 1 1
+
+mahdotonOsuaHemmoja :: [Hemmo]
+mahdotonOsuaHemmoja = [mahdotonOsuaHemmo, Hemmo (2, 900) 1 1, Hemmo (700, 500) 1 1]
+
+{-
+testaaOsuuko :: [((Point, b), (a, Point))] -> [Hemmo] -> Maybe [Point]
+testaaOsuuko viivat hemmot =
+  let yhteen ((vy, va), (oy, oa)) hemmo1 =
+        let ((h1, h2), (h3, h4)) = nurkkaPisteetHemmo hemmo1
+         in case (osuuko2 h1 vy h4 oa) of
+              Nothing -> Nothing
+              Just a -> Just a
+      osuukoViivaan viiva = mapMaybe (yhteen viiva) hemmot
+      osuukoHemmot = fmap head (nonEmpty (map osuukoViivaan viivat))
+   in osuukoHemmot
+
+-}
