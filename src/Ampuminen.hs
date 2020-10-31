@@ -26,7 +26,7 @@ piirräAmmus ammus = translate x y (scale 0.4 0.4 ammusKuva)
   where
     (x, y) = ammus_paikka ammus
     ammusKuva = translate 0 (150) (color black pallo)
-    pallo = circleSolid 300
+    pallo = circleSolid 50
 
 -- TODO
 
@@ -45,12 +45,11 @@ päivitäAmmus aikaEdellisestä ammus =
 
 ammusTörmäysViivat :: Ammus -> ((Point, Point), (Point, Point))
 ammusTörmäysViivat ammus =
-  let säde = 150
+  let säde = 80
       y1 = (säde, säde) #+ (ammus_paikka ammus)
       y2 = (- säde, säde) #+ (ammus_paikka ammus)
       y3 = (säde, - säde) #+ (ammus_paikka ammus)
       y4 = (- säde, - säde) #+ (ammus_paikka ammus)
-      kääntö = rotateV (- degToRad 45)
    in ((y1, y2), (y3, y4))
 
 ammusTesti :: Ammus

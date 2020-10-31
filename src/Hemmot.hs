@@ -11,7 +11,7 @@ data Hemmo = Hemmo
     hemmo_pituus :: Float,
     hemmo_leveys :: Float
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 haluaakoLiikkua :: (Float -> Float) -> Point -> Hemmo -> Bool
 haluaakoLiikkua korkeusKohdassa kopterinPaikka hemmo = haluaaLiikkua && not putoaako

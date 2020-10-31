@@ -2,7 +2,7 @@ module Main where
 
 import Ampuminen
 import Aritmetiikka
-import Data.List (partition)
+import Data.List (delete, partition)
 import Graphics.Gloss
 import Graphics.Gloss.Data.Vector
 import Graphics.Gloss.Geometry.Line
@@ -26,7 +26,8 @@ alkutilanne =
         (luoKopteri (0, 0))
         [Talo 800 500 700]
         [ Hemmo (700, 800) pituus leveys,
-          Hemmo (900, 800) pituus leveys
+          Hemmo (900, 800) pituus leveys,
+          Hemmo (-200, 0) pituus leveys
         ]
         []
         0
@@ -71,6 +72,16 @@ kopterille f peli = peli {cl_kopteri = f (cl_kopteri peli)}
 ammu :: Float -> Choplifter -> Choplifter
 ammu monta peli = peli {cl_ammukset = (luoAmmukset monta (cl_kopteri peli)) ++ (cl_ammukset peli)}
 
+poistaHemmoja :: [Hemmo] -> Choplifter -> Choplifter
+poistaHemmoja hemmot peli = peli {cl_hemmot = (foldr poistaHemmo [] hemmot)}
+  where
+    poistaHemmo ph poistetut = delete ph poistetut
+
+päivitäScore :: Choplifter -> [Hemmo] -> Choplifter
+päivitäScore peli osuneetHemmot = peli {cl_score = (cl_score peli) + osumat}
+  where
+    osumat = length osuneetHemmot
+
 päivitäPelitilanne :: Float -> PeliTilanne -> PeliTilanne
 päivitäPelitilanne aikaEdellisestä pelitilanne =
   case pelitilanne of
@@ -99,7 +110,9 @@ osuukoAmmusPäivitys ae cl =
     Just osunutHemmoihin ->
       case osunutHemmoihin of
         [] -> Just cl
-        jotain -> Just (cl {cl_kc = (cl_kc cl) + 1})
+        osumiaSaaneetHemmot ->
+          let päivitettyPeli = poistaHemmoja osumiaSaaneetHemmot cl
+           in Just (päivitäScore päivitettyPeli osumiaSaaneetHemmot)
     Nothing -> Just cl
 
 törmääköTaloonPäivitys :: Float -> Choplifter -> Maybe Choplifter
@@ -228,23 +241,10 @@ piirräPeli peli =
           )
           (cl_ammukset peli)
 
-      ammusViivaPisteet =
-        case length (cl_ammukset peli) > 0 of
-          True ->
-            map
-              ( \x ->
-                  let v = ammusTörmäysViivat x
-                      ekat = fst v
-                      teksti = text ("(" ++ (show (fst ekat)) ++ "," ++ (show (snd ekat)) ++ ")")
-                   in teksti
-              )
-              (cl_ammukset peli)
-          False -> []
-
       peliKuva = case length (cl_ammukset peli) > 0 of
         True ->
           maa
-            <> translate (-250) (ruudunY * 2) (text ("Kill Count: " ++ (show (cl_kc peli))))
+            <> translate (-250) (ruudunY * 2) (text ("Score: " ++ (show (cl_score peli))))
             <> pictures taloKuvat
             <> pictures hemmoKuvat
             <> kopterikuva
@@ -255,10 +255,9 @@ piirräPeli peli =
             <> pictures hemmoNurkat3
             <> pictures v2
             <> pictures v1
-            <> pictures ammusViivaPisteet
         False ->
           maa
-            <> translate (-250) (ruudunY * 2) (text ("Kill Count: " ++ (show (cl_kc peli))))
+            <> translate (-250) (ruudunY * 2) (text ("Score: " ++ (show (cl_score peli))))
             <> pictures taloKuvat
             <> pictures hemmoKuvat
             <> kopterikuva
@@ -279,7 +278,7 @@ data Choplifter = Peli
     cl_talot :: [Talo], -- Esteet pelissä
     cl_hemmot :: [Hemmo], -- Pelihahmot
     cl_ammukset :: [Ammus],
-    cl_kc :: Natural
+    cl_score :: Int
   }
   deriving (Show)
 
