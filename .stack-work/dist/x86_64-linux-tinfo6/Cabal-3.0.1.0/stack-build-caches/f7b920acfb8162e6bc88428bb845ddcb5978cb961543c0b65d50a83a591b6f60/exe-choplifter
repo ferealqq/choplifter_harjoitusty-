@@ -1,32 +1,40 @@
+/home/peke/Documents/Koulu/funkkari_ht/src/ApuViivoja.hs:
+  hash: 8d9629054e1de532834d4a84ae79a7e248b2ae26cc2423305731e317adcb322d
+  size: 1504
+  modtime: 1604162290
 /home/peke/Documents/Koulu/funkkari_ht/src/Main.hs:
-  hash: a4c679a4fb78e6e5f311a01cc77f22f630f0c9c09141297ebce71d876ce6ca53
-  size: 9567
-  modtime: 1604158435
+  hash: da942fe119e4526a6530c80fe6c09f6b716a060b0e971cde2a4862acc08eccd8
+  size: 10858
+  modtime: 1604163362
 /home/peke/Documents/Koulu/funkkari_ht/src/Aritmetiikka.hs:
-  hash: a1b6f1e90459dcca2c4d34e102e484d389e36a37bfaf99e7dba7526d3cd51794
-  size: 1591
-  modtime: 1604081014
+  hash: e714cea55e2fc2ac3aa2f5b8a1bd3936d13abd64d934f0f68c0947a987000394
+  size: 1337
+  modtime: 1604162967
 /home/peke/Documents/Koulu/funkkari_ht/src/Kopteri.hs:
-  hash: 30d3ecaee1101245edfe359e1e7a68db008c87d0890e9d1b73e6d3d83b927cc1
-  size: 3111
-  modtime: 1604068480
+  hash: 43aedaccda8ce50fe88733622e61ac1aac58c66ff346b9fbcd97b194bbf6d4ff
+  size: 3123
+  modtime: 1604161270
+/home/peke/Documents/Koulu/funkkari_ht/src/Vihollinen.hs:
+  hash: a541b4a3ff751eff0c8c496f9fe96d74df64a5fa78686df5cd93a14435bcb3c7
+  size: 3568
+  modtime: 1604162436
 /home/peke/Documents/Koulu/funkkari_ht/src/Prelude.hs:
   hash: 413f52f25541f67867a4d1f9f3349b9483eac9ec7daa781b6bb7c5ef84e5ca11
   size: 367
   modtime: 1604068480
 /home/peke/Documents/Koulu/funkkari_ht/choplifter.cabal:
-  hash: 5f78a03ea96b2259b36dc78e680228cedd1e25336345cc265c56394b1a60bce2
-  size: 1287
-  modtime: 1604068480
+  hash: adbbec68d9cbf173a56e4e5c5296871ca1a8dd9c3e6f5e61d2b2c92e3db0283c
+  size: 1309
+  modtime: 1604162166
 /home/peke/Documents/Koulu/funkkari_ht/src/Talot.hs:
   hash: 9de492b1a2ffe6e2a9fc385ce85f47da2a7e77f4aba6cb42c99fcbdecf994978
   size: 1159
   modtime: 1604068480
 /home/peke/Documents/Koulu/funkkari_ht/src/Ampuminen.hs:
-  hash: 1dd26d5ce0610b4fa16634b970d166e280d29154958a5b009cdc09d001ace1c6
-  size: 2210
-  modtime: 1604157228
+  hash: 05ae0be2eb5b6f21374ca074234385d68782484f11a431a08046435f8ce1e753
+  size: 2399
+  modtime: 1604162448
 /home/peke/Documents/Koulu/funkkari_ht/src/Hemmot.hs:
-  hash: f89747bf59305f673a9d09deb71b17ac0bc322b4e00a3d49f74e2fb148bfb246
-  size: 4452
-  modtime: 1604158082
+  hash: 11032f2892173a32346edcf633bd7f0274200e7dd330c4f7a71125c2766c3a7a
+  size: 3557
+  modtime: 1604162359

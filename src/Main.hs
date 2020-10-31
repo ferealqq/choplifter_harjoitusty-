@@ -10,6 +10,7 @@ import Graphics.Gloss.Interface.Pure.Game
 import Hemmot
 import Kopteri
 import Talot
+import Vihollinen
 import Prelude hiding (Down)
 
 pituus :: Num a => a
@@ -23,14 +24,18 @@ alkutilanne =
   GameOn
     ( Peli
         0
-        (luoKopteri (0, 0))
+        (luoKopteri (0, 400))
         [Talo 800 500 700]
         [ Hemmo (700, 800) pituus leveys,
-          Hemmo (900, 800) pituus leveys,
-          Hemmo (-200, 0) pituus leveys
+          Hemmo (900, 800) pituus leveys
         ]
         []
         0
+        [ Vihollinen (1100, 5) pituus leveys,
+          Vihollinen (600, 5) pituus leveys,
+          Vihollinen (100, 5) pituus leveys,
+          Vihollinen (-600, 5) pituus leveys
+        ]
     )
 
 ruudunX :: Num p => p
@@ -55,6 +60,7 @@ reagoiPeliTilanne tapahtuma pelitilanne =
   case pelitilanne of
     GameOver cl -> GameOver cl
     GameOn cl -> GameOn (reagoi tapahtuma cl)
+    GameWin cl -> GameWin cl
 
 reagoi :: Event -> Choplifter -> Choplifter
 reagoi tapahtuma peli =
@@ -72,21 +78,29 @@ kopterille f peli = peli {cl_kopteri = f (cl_kopteri peli)}
 ammu :: Float -> Choplifter -> Choplifter
 ammu monta peli = peli {cl_ammukset = (luoAmmukset monta (cl_kopteri peli)) ++ (cl_ammukset peli)}
 
-poistaHemmoja :: [Hemmo] -> Choplifter -> Choplifter
-poistaHemmoja hemmot peli = peli {cl_hemmot = (foldr poistaHemmo [] hemmot)}
+poistaViholliset :: [Vihollinen] -> Choplifter -> Choplifter
+poistaViholliset [] peli = peli
+poistaViholliset (vihollinen : loput) peli = poistaViholliset loput päivitettyPeli
   where
-    poistaHemmo ph poistetut = delete ph poistetut
+    päivitettyPeli = peli {cl_viholliset = poistaVihollinen vihollinen (cl_viholliset peli)}
+    poistaVihollinen ph viholliset = delete ph viholliset
 
-päivitäScore :: Choplifter -> [Hemmo] -> Choplifter
-päivitäScore peli osuneetHemmot = peli {cl_score = (cl_score peli) + osumat}
+päivitäScore :: Choplifter -> [Vihollinen] -> Choplifter
+päivitäScore peli osututViholliset = peli {cl_score = (cl_score peli) + osumat}
   where
-    osumat = length osuneetHemmot
+    osumat = toInteger (length osututViholliset)
 
 päivitäPelitilanne :: Float -> PeliTilanne -> PeliTilanne
 päivitäPelitilanne aikaEdellisestä pelitilanne =
   case pelitilanne of
     GameOver cl -> GameOver cl
-    GameOn cl -> tarkistaTörmäystilanteet aikaEdellisestä cl
+    GameOn cl -> case (voittikoPelin cl) of
+      False -> tarkistaTörmäystilanteet aikaEdellisestä cl
+      True -> GameWin cl
+    GameWin cl -> GameWin cl
+
+voittikoPelin :: Choplifter -> Bool
+voittikoPelin cl = (cl_score cl) == 24
 
 tarkistaTörmäystilanteet :: Float -> Choplifter -> PeliTilanne
 tarkistaTörmäystilanteet ae cl =
@@ -106,13 +120,13 @@ tarkistaTörmäystilanteet ae cl =
 
 osuukoAmmusPäivitys :: Float -> Choplifter -> Maybe Choplifter
 osuukoAmmusPäivitys ae cl =
-  case osuukoAmmus ae (map ammusTörmäysViivat (cl_ammukset cl)) (cl_hemmot cl) of
-    Just osunutHemmoihin ->
-      case osunutHemmoihin of
+  case osuukoAmmus ae (map ammusTörmäysViivat (cl_ammukset cl)) (cl_viholliset cl) of
+    Just osuneetVihollisiin ->
+      case osuneetVihollisiin of
         [] -> Just cl
-        osumiaSaaneetHemmot ->
-          let päivitettyPeli = poistaHemmoja osumiaSaaneetHemmot cl
-           in Just (päivitäScore päivitettyPeli osumiaSaaneetHemmot)
+        osumiaSaaneetViholliset ->
+          let päivitettyPeli = poistaViholliset osumiaSaaneetViholliset cl
+           in Just (päivitäScore päivitettyPeli osumiaSaaneetViholliset)
     Nothing -> Just cl
 
 törmääköTaloonPäivitys :: Float -> Choplifter -> Maybe Choplifter
@@ -127,33 +141,50 @@ törmääköTaloonPäivitys aikaEdellisestä cl =
           )
       | otherwise -> Nothing
 
+montaUuttaHemmoaNouseeKyytiin :: Kopteri -> (Kopteri -> Kopteri) -> Integer
+montaUuttaHemmoaNouseeKyytiin kopteri kopterissaUusia =
+  let uusi = kopterissaUusia kopteri
+      j = compare (kop_hemmojaKyydissä uusi) (kop_hemmojaKyydissä kopteri)
+   in case j of
+        GT -> toInteger ((kop_hemmojaKyydissä uusi) - (kop_hemmojaKyydissä kopteri))
+        otherwise -> 0
+
 päivitäPeliä :: Float -> Choplifter -> Choplifter
 päivitäPeliä aikaEdellisestä edellinenTila =
   case edellinenTila of
-    Peli aika kopteri talot hemmot ammukset kc ->
+    Peli aika kopteri talot hemmot ammukset score viholliset ->
       let nouseekoKyytiin hemmo = magV (hemmo_sijainti hemmo #- kop_paikka kopteri) < 50
           (hemmotKopteriin, hemmotUlkona) = partition nouseekoKyytiin hemmot
+          kopterissaHemmoja = noukiHemmot hemmotKopteriin
+          montaUuttaHemmoakyydissä = montaUuttaHemmoaNouseeKyytiin kopteri kopterissaHemmoja
+          uusiScore = case compare montaUuttaHemmoakyydissä 0 of
+            GT -> score + (montaUuttaHemmoakyydissä * 10)
+            otherwise -> score
        in Peli
             (aika + aikaEdellisestä)
-            (noukiHemmot hemmotKopteriin . päivitäKopteri aikaEdellisestä $ kopteri)
+            (kopterissaHemmoja . päivitäKopteri aikaEdellisestä $ kopteri)
             talot
             ( map
                 (päivitäHemmoa (flip korkeusKohdassa edellinenTila) (kop_paikka kopteri))
                 hemmotUlkona
             )
             (map (päivitäAmmus aikaEdellisestä) ammukset)
-            kc
+            uusiScore
+            ( map
+                (päivitäVihollista (kop_paikka kopteri))
+                viholliset
+            )
 
 data TörmäysKohta = Laskuteline | Roottori
   deriving (Eq, Ord, Show)
 
-osuukoAmmus :: Float -> [((Point, Point), (Point, Point))] -> [Hemmo] -> Maybe [Hemmo]
-osuukoAmmus _ae viivat hemmot =
-  let yhteen törPist hemmo1 =
-        case (osuuko (nurkkaPisteetHemmo hemmo1) törPist) of
+osuukoAmmus :: Float -> [((Point, Point), (Point, Point))] -> [Vihollinen] -> Maybe [Vihollinen]
+osuukoAmmus _ae viivat viholliset =
+  let yhteen törPist vihollinen =
+        case (osuuko (nurkkaPisteetVihollinen vihollinen) törPist) of
           False -> Nothing
-          _ -> Just hemmo1
-      osuukoViivaan viiva = mapMaybe (yhteen viiva) hemmot
+          _ -> Just vihollinen
+      osuukoViivaan viiva = mapMaybe (yhteen viiva) viholliset
       osuukoHemmot = fmap head (nonEmpty (map osuukoViivaan viivat))
    in osuukoHemmot
 
@@ -177,6 +208,7 @@ piirräPeliTilanne pelitilanne =
   case pelitilanne of
     GameOver cl -> piirräPeli cl <> translate (-300) 0 (color yellow (text "GAME OVER"))
     GameOn cl -> piirräPeli cl
+    GameWin cl -> piirräPeli cl <> translate (-300) 0 (color yellow (text "YOU WIN!"))
 
 piirräPeli :: Choplifter -> Picture
 piirräPeli peli =
@@ -187,59 +219,7 @@ piirräPeli peli =
       hemmoKuvat = map (piirräHemmo (cl_aika peli)) (cl_hemmot peli)
       taloKuvat = map piirräTalo talot
 
-      hemmoNurkat =
-        map
-          ( \d ->
-              let (((x, y), (_x1, _y1)), ((_x2, _y2), (_x3, _y3))) = nurkkaPisteetHemmo d
-                  t1 = translate x y (color black (circleSolid 10))
-               in t1
-          )
-          (cl_hemmot peli)
-
-      hemmoNurkat1 =
-        map
-          ( \d ->
-              let (((_x, _y), (_x1, _y1)), ((_x2, _y2), (_x3, _y3))) = nurkkaPisteetHemmo d
-                  t1 = translate _x1 _y1 (color black (circleSolid 10))
-               in t1
-          )
-          (cl_hemmot peli)
-
-      hemmoNurkat2 =
-        map
-          ( \d ->
-              let (((_x, _y), (_x1, _y1)), ((_x2, _y2), (_x3, _y3))) = nurkkaPisteetHemmo d
-                  t1 = translate _x2 _y2 (color black (circleSolid 10))
-               in t1
-          )
-          (cl_hemmot peli)
-
-      hemmoNurkat3 =
-        map
-          ( \d ->
-              let (((_x, _y), (_x1, _y1)), ((_x2, _y2), (_x3, _y3))) = nurkkaPisteetHemmo d
-                  t1 = translate _x3 _y3 (color black (circleSolid 10))
-               in t1
-          )
-          (cl_hemmot peli)
-
-      v1 =
-        map
-          ( \d ->
-              let ((p1, p2), (p3, p4)) = nurkkaPisteetHemmo d
-                  t1 = color yellow (line [p1, p4])
-               in t1
-          )
-          (cl_hemmot peli)
-
-      v2 =
-        map
-          ( \d ->
-              let ((p1, p2), (p3, p4)) = ammusTörmäysViivat d
-                  t1 = color red (line [p1, p4])
-               in t1
-          )
-          (cl_ammukset peli)
+      viholliset = map (piirräVihollinen (cl_aika peli)) (cl_viholliset peli)
 
       peliKuva = case length (cl_ammukset peli) > 0 of
         True ->
@@ -247,29 +227,19 @@ piirräPeli peli =
             <> translate (-250) (ruudunY * 2) (text ("Score: " ++ (show (cl_score peli))))
             <> pictures taloKuvat
             <> pictures hemmoKuvat
+            <> pictures viholliset
             <> kopterikuva
             <> pictures (map piirräAmmus (cl_ammukset peli))
-            <> pictures hemmoNurkat
-            <> pictures hemmoNurkat1
-            <> pictures hemmoNurkat2
-            <> pictures hemmoNurkat3
-            <> pictures v2
-            <> pictures v1
         False ->
           maa
             <> translate (-250) (ruudunY * 2) (text ("Score: " ++ (show (cl_score peli))))
             <> pictures taloKuvat
             <> pictures hemmoKuvat
+            <> pictures viholliset
             <> kopterikuva
-            <> pictures hemmoNurkat
-            <> pictures hemmoNurkat1
-            <> pictures hemmoNurkat2
-            <> pictures hemmoNurkat3
-            <> pictures v1
-            <> pictures v2
    in scale 0.25 0.25 (translate 0 (-180) peliKuva)
 
-data PeliTilanne = GameOver Choplifter | GameOn Choplifter
+data PeliTilanne = GameOver Choplifter | GameOn Choplifter | GameWin Choplifter
 
 data Choplifter = Peli
   { -- | Aika pelin alusta
@@ -277,8 +247,9 @@ data Choplifter = Peli
     cl_kopteri :: Kopteri, -- kopterin tiedot
     cl_talot :: [Talo], -- Esteet pelissä
     cl_hemmot :: [Hemmo], -- Pelihahmot
-    cl_ammukset :: [Ammus],
-    cl_score :: Int
+    cl_ammukset :: [Ammus], -- Kopterin ampumat pommit
+    cl_score :: Integer, -- Score
+    cl_viholliset :: [Vihollinen] -- Viholliset
   }
   deriving (Show)
 
@@ -289,6 +260,7 @@ korkeusKohdassa kohta peli =
 maa :: Picture
 maa = color green (translate 0 (-500) (rectangleSolid 5000 1000))
 
+testiPeli :: Choplifter
 testiPeli =
   ( Peli
       0
@@ -297,6 +269,45 @@ testiPeli =
       [ Hemmo (700, 800) pituus leveys,
         Hemmo (900, 800) pituus leveys
       ]
-      montaAmmusta
+      yksiAmmusOsuuTestiVihollisia2
       0
+      testiVihollisia2
   )
+
+osuuYhteenViholliseenTesti :: Maybe [Vihollinen]
+osuuYhteenViholliseenTesti =
+  let as = yksiAmmusOsuuTestiVihollisia2
+      v = testiVihollisia2
+      p = osuukoAmmus 0 (map ammusTörmäysViivat as) v
+   in p
+
+poistoTesti :: Maybe Choplifter
+poistoTesti =
+  let osunutVihollinen = osuuYhteenViholliseenTesti
+      peli = case osunutVihollinen of
+        Just x -> case x of
+          [] -> Nothing
+          y -> Just (poistaViholliset y testiPeli)
+        Nothing -> Nothing
+   in peli
+
+tulos :: Maybe Choplifter
+tulos =
+  Just
+    ( Peli
+        { cl_aika = 0.0,
+          cl_kopteri = Kopteri {kop_paikka = (0.0, 0.0), kop_nopeus = (0.0, 0.0), kop_teho = 0.0, kop_kulma = 0.0, kop_hemmojaKyydissä = 0},
+          cl_talot = [Talo {talo_korkeus = 800.0, talo_leveys = 500.0, talo_sijainti = 700.0}],
+          cl_hemmot =
+            [ Hemmo {hemmo_sijainti = (700.0, 800.0), hemmo_pituus = 120.0, hemmo_leveys = 50.0},
+              Hemmo {hemmo_sijainti = (900.0, 800.0), hemmo_pituus = 120.0, hemmo_leveys = 50.0}
+            ],
+          cl_ammukset =
+            [ Ammus {ammus_paikka = (100.0, 0.0), ammus_nopeus = (1.0, 1.0)},
+              Ammus {ammus_paikka = (-1.0e7, -1.0e11), ammus_nopeus = (-100.0, -100.0)},
+              Ammus {ammus_paikka = (-1.0e8, -1.0e9), ammus_nopeus = (-999.0, -999.0)}
+            ],
+          cl_score = 0,
+          cl_viholliset = []
+        }
+    )

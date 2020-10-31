@@ -5,7 +5,7 @@ import Graphics.Gloss.Data.Color
 import Graphics.Gloss.Data.Picture
 import Graphics.Gloss.Data.Point
 import Graphics.Gloss.Data.Vector
-import Graphics.Gloss.Geometry.Angle
+import Graphics.Gloss.Geometry.Angle (degToRad)
 import Hemmot (Hemmo)
 
 luoKopteri :: Point -> Kopteri
@@ -93,7 +93,7 @@ laskeudu kopteri@(Kopteri {kop_nopeus = (_vX, vY)}) =
 
 onkoHyväLaskeutuminen :: Kopteri -> Bool
 onkoHyväLaskeutuminen kopteri =
-  magV (kop_nopeus kopteri) < 80 && abs (kop_kulma kopteri) <= 10
+  magV (kop_nopeus kopteri) < 150 && abs (kop_kulma kopteri) <= 30
 
 kallista :: Float -> Kopteri -> Kopteri
 muutaTehoa :: Float -> Kopteri -> Kopteri

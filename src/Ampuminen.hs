@@ -45,7 +45,7 @@ päivitäAmmus aikaEdellisestä ammus =
 
 ammusTörmäysViivat :: Ammus -> ((Point, Point), (Point, Point))
 ammusTörmäysViivat ammus =
-  let säde = 80
+  let säde = 65
       y1 = (säde, säde) #+ (ammus_paikka ammus)
       y2 = (- säde, säde) #+ (ammus_paikka ammus)
       y3 = (säde, - säde) #+ (ammus_paikka ammus)
@@ -69,6 +69,9 @@ viivatAmmus2 = map ammusTörmäysViivat montaAmmusta2
 
 hävinneetAmmukset :: [Ammus]
 hävinneetAmmukset = [Ammus (-10000000, -100000000000) (-100, -100), Ammus (-99999999, -999999999) (-999, -999)]
+
+yksiAmmusOsuuTestiVihollisia2 :: [Ammus]
+yksiAmmusOsuuTestiVihollisia2 = [Ammus (100, 0) (1, 1), Ammus (-10000000, -100000000000) (-100, -100), Ammus (-99999999, -999999999) (-999, -999)]
 
 kadonneetViivat :: [((Point, Point), (Point, Point))]
 kadonneetViivat = map ammusTörmäysViivat hävinneetAmmukset

@@ -12,8 +12,8 @@ import Graphics.Gloss.Geometry.Line
 
 type PointPari = ((Point, Point), (Point, Point))
 
-osuuko_ :: PointPari -> PointPari -> Bool
-osuuko_ ((p1, p2), (p3, p4)) ((pl1, pl2), (pl3, pl4)) =
+osuuko_2 :: PointPari -> PointPari -> Bool
+osuuko_2 ((p1, p2), (p3, p4)) ((pl1, pl2), (pl3, pl4)) =
   case intersectSegSeg p1 p4 pl1 pl4 of
     Nothing -> False
     Just _a -> True
@@ -30,18 +30,6 @@ osuuko (pointPari1, pointPari2) (pointPari3, pointPari4) = (fst (foldr ok (False
           4 -> (osuukoApu (snd pointPari1) (fst pointPari2) (snd pointPari3) (fst pointPari4), _loput)
           otherwise -> (b, _loput)
         True -> (True, [])
-
-kpe :: PointPari -> Point
-kpe pointPari = fst (fst pointPari)
-
-kpt :: PointPari -> Point
-kpt pointPari = snd (snd pointPari)
-
-kpet :: PointPari -> Point
-kpet pointPari = fst (snd pointPari)
-
-kpte :: PointPari -> Point
-kpte pointPari = snd (fst pointPari)
 
 osuukoApu :: Point -> Point -> Point -> Point -> Bool
 osuukoApu p1 p2 p3 p4 = case intersectSegSeg p1 p2 p3 p4 of

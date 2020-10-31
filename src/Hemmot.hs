@@ -46,7 +46,7 @@ piirräHemmo aika hemmo =
       oikeaJalka = 15 + cos (12 * aika) * 7
       hemmonKuva =
         color
-          red
+          (dark blue)
           ( translate 0 110 (circleSolid 20)
               <> line [(0, 100), lantio] -- selkä
               <> line
@@ -65,23 +65,6 @@ piirräHemmo aika hemmo =
           )
    in translate x y hemmonKuva
 
-{-
-hemmoTörmäysViivat :: Hemmo -> ((Point, Point), (Point, Point))
-hemmoTörmäysViivat kopteri =
-  let paikka = kop_paikka kopteri
-      kulma = kop_kulma kopteri
-      vasen = -170
-      oikea = 100
-      kääntö = rotateV (- degToRad kulma)
-   in ( ( kääntö (vasen, 0) #+ paikka,
-          kääntö (oikea, 0) #+ paikka
-        ),
-        ( kääntö (vasen, 120) #+ paikka,
-          kääntö (oikea, 120) #+ paikka
-        )
-      )
--}
-
 osuukoHemmoon :: Float -> Hemmo -> Float
 osuukoHemmoon kohta hemmo
   | abs (fst (hemmo_sijainti hemmo) - kohta) < (hemmo_leveys hemmo / 2) =
@@ -99,18 +82,6 @@ nurkkaPisteetHemmo _hemmo@(Hemmo {hemmo_sijainti = (hx, hy), hemmo_pituus = pitu
       oikeaYlä = (hemmoMaxX, hemmoMaxY)
       oikeaAla = (hemmoMaxX, hy)
    in ((vasenYlä, vasenAla), (oikeaYlä, oikeaAla))
-
-{-
-nurkkaPisteetHemmo :: Hemmo -> (Point, Point)
-nurkkaPisteetHemmo hemmo =
-  let hemmoMinX = fst (hemmo_sijainti hemmo) - ((hemmo_leveys hemmo) / 2)
-      hemmoMaxX = fst (hemmo_sijainti hemmo) + ((hemmo_leveys hemmo) / 2)
-      hemmoMaxY = snd (hemmo_sijainti hemmo) + ((hemmo_pituus hemmo))
-      hemmoMinY = snd (hemmo_sijainti hemmo)
-      vasenAla = (hemmoMinX, hemmoMinY)
-      oikeaYlä = (hemmoMaxX, hemmoMaxY)
-   in (vasenAla, oikeaYlä)
--}
 
 testiHemmo :: Hemmo
 testiHemmo = Hemmo (1000, 1000) 120 65
